@@ -1,0 +1,27 @@
+{
+  "name": "ai-100x-se-join-quest",
+  "version": "1.0.0",
+  "description": "《 AI 軟工百倍研究組織》是一場由《水球軟體學院》發起的技術研究社群，目標是集結全台具備軟體開發能力的工程師，共同推進 AI × BDD 開發流程的研究與實踐。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate:report:orderpromotions": "node generate-report.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chengxufeng1994/AI-100x-SE-Join-Quest.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chengxufeng1994/AI-100x-SE-Join-Quest/issues"
+  },
+  "homepage": "https://github.com/Chengxufeng1994/AI-100x-SE-Join-Quest#readme",
+  "devDependencies": {
+    "cucumber-html-reporter": "^7.2.0"
+  }
+}

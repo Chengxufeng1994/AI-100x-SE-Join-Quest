@@ -1,0 +1,146 @@
+name: Bug report form
+description: "問題表單 template"
+title: "Bug: "
+labels: ["bug"]
+assignees:
+  - "mattli001"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        新增 [問題報告] 前，請先查看 Issue 清單，是否已有類似的問題回報
+        ---
+        感謝您花時間提交這個錯誤報告，為了能夠盡快解決這個問題，我們需要下面的資訊
+  - type: input
+    id: occurrence-time
+    attributes:
+      label: 發生時間
+      description: |
+        請填寫發現問題的日期和時間。
+        格式：YYYY-MM-DD HH:mm（例如：2023-05-16 14:30）
+    validations:
+      required: true
+  - type: input
+    id: occurrence-api-version
+    attributes:
+      label: 軟體名稱 / 版本 / commit hash link
+      description: |
+        請填寫軟體名稱與版本版本號或 commit hash
+    validations:
+      required: true
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: 問題描述
+      description: 請簡要描述問題
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 頻率
+      description: 問題出現的頻率
+      options:
+        - 不確定
+        - 總是出現（100%）
+        - 經常出現（≥50%）
+        - 偶爾出現（<50%）
+        - 無法重現
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 嚴重度
+      description: |
+        Critical: 嚴重影響產品使用，需要立即解決
+        Major   : 功能不符合規格/預期，需要儘早解決
+        Minor   : 一些 UI / Wording問題，不影響功能
+        Enhance : 功能增強,優化,建議，不一定要解決
+      options:
+        - Major
+        - Critical
+        - Minor
+        - Enhance
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: affected-users
+    attributes:
+      label: 影響用戶量
+      description: 估算這個問題可能影響到的用戶數量或比例。
+      options:
+        - 所有用戶
+        - 特定用戶群（如:舊用戶、新用戶）
+        - 少數用戶
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 重現步驟
+      description: |
+        * 可以重複出現相同問題的操作步驟，包括前置條件和觸發條件
+        * 不需要假設任何原因，盡可能詳細描述操作細節
+        * 遇到問題時不要馬上回報，可以試看看不同操作步驟或環境，會不會遇到相同問題，可以增加對問題的了解
+      value: |
+        1.
+        2.
+        3.
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: 預期結果
+      description: |
+        * 描述你預期看到怎樣的結果 - 資料正確性, 邏輯性
+        * 希望功能可以達到什麼目標、或畫面效果有怎樣的變化
+    validations:
+      required: true
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: 實際結果
+      description: |
+        * 遇到什麼狀況、錯誤訊息文字
+        * 畫面截圖 (含瀏覽器的網址列) / 錄影
+        * 嘗試過哪些方法解決這個問題、發現怎樣的替代過渡辦法 (Workaround) 就不會發生問題
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: 作業系統
+      options:
+        - 不限
+        - Windows
+        - macOS
+        - Linux
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 瀏覽器
+      options:
+        - 不限
+        - Chrome
+        - Safari
+        - Edge
+        - Firefox
+        - Others
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    id: other-details
+    attributes:
+      label: 其他說明 (選擇性的)
+      description: |
+        如果有任何其他與此問題相關的資訊，請在此處提供。例如: API 的回應 json、網頁的 console log 等。

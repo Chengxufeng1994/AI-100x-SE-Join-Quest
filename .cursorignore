@@ -1,0 +1,9 @@
+**/.DS_Store
+.env
+.DS_Store
+.next
+.idea
+coverage.xml
+.coverage
+go.work
+go.work.sum
