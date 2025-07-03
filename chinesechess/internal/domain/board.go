@@ -6,7 +6,7 @@ type Position struct {
 }
 
 type Piece struct {
-	Name string
+	Name  string
 	Color string
 }
 

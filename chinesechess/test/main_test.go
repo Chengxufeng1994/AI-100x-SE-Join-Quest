@@ -27,9 +27,7 @@ func init() {
 
 func TestMain(m *testing.M) {
 	pflag.Parse()
-
-	t = &testing.T{}
-
+	opts.Paths = []string{"../feature"}
 	status := godog.TestSuite{
 		Name:                "godog",
 		ScenarioInitializer: InitializeScenario,
@@ -39,7 +37,6 @@ func TestMain(m *testing.M) {
 	if st := m.Run(); st > status {
 		status = st
 	}
-
 	os.Exit(status)
 }
 

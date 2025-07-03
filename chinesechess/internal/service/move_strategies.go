@@ -1,64 +1,16 @@
 package service
 
-import (
-	"github.com/Chengxufeng1994/ai-100x-se-join-quest/chinesechess/internal/domain"
-)
+import "github.com/Chengxufeng1994/ai-100x-se-join-quest/chinesechess/internal/domain"
 
-type ChineseChessService struct {
-	board *domain.Board
+// PieceMoveStrategy defines the interface for checking legal moves of a piece.
+type PieceMoveStrategy interface {
+	IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool
 }
 
-func NewChineseChessService() *ChineseChessService {
-	return &ChineseChessService{
-		board: domain.NewBoard(),
-	}
-}
+// GeneralMoveStrategy implements PieceMoveStrategy for the General.
+type GeneralMoveStrategy struct{}
 
-func (s *ChineseChessService) SetPiece(piece domain.Piece, position domain.Position) {
-	s.board.Pieces[position] = piece
-}
-
-func (s *ChineseChessService) GetPiece(position domain.Position) domain.Piece {
-	return s.board.Pieces[position]
-}
-
-func (s *ChineseChessService) IsLegalMove(from, to domain.Position) bool {
-	piece, exists := s.board.Pieces[from]
-	if !exists {
-		return false // No piece at the 'from' position
-	}
-
-	switch piece.Name {
-	case "Red General", "Black General":
-		return s.isLegalGeneralMove(from, to, piece.Color)
-	case "Red Guard", "Black Guard":
-		return s.isLegalGuardMove(from, to, piece.Color)
-	case "Red Rook", "Black Rook":
-		return s.isLegalRookMove(from, to, piece.Color)
-	case "Red Horse", "Black Horse":
-		return s.isLegalHorseMove(from, to, piece.Color)
-	case "Red Cannon", "Black Cannon":
-		return s.isLegalCannonMove(from, to, piece.Color)
-	case "Red Elephant", "Black Elephant":
-		return s.isLegalElephantMove(from, to, piece.Color)
-	case "Red Soldier", "Black Soldier":
-		return s.isLegalSoldierMove(from, to, piece.Color)
-	default:
-		return false // Not implemented for other pieces yet
-	}
-}
-
-func (s *ChineseChessService) CheckGameOver(lastMovedPiece domain.Piece, to domain.Position) bool {
-	// If the last moved piece captured the opponent's General, the game is over.
-	// This is a simplified check for the current scenario.
-	capturedPiece, exists := s.board.Pieces[to]
-	if exists && capturedPiece.Name == "Black General" && lastMovedPiece.Color == "Red" {
-		return true
-	}
-	return false
-}
-
-func (s *ChineseChessService) isLegalGeneralMove(from, to domain.Position, color string) bool {
+func (s *GeneralMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	dx := abs(to.Col - from.Col)
 	dy := abs(to.Row - from.Row)
 
@@ -85,13 +37,13 @@ func (s *ChineseChessService) isLegalGeneralMove(from, to domain.Position, color
 
 	// Simulate the move to check for general facing rule
 	tempBoardPieces := make(map[domain.Position]domain.Piece)
-	for pos, p := range s.board.Pieces {
+	for pos, p := range board.Pieces {
 		tempBoardPieces[pos] = p
 	}
 
 	// Remove the piece from its original position and place it at the new position
 	delete(tempBoardPieces, from)
-	tempBoardPieces[to] = s.board.Pieces[from]
+	tempBoardPieces[to] = board.Pieces[from]
 
 	// Find generals' positions after the move
 	var redGeneralPos, blackGeneralPos domain.Position
@@ -126,7 +78,10 @@ func (s *ChineseChessService) isLegalGeneralMove(from, to domain.Position, color
 	return true
 }
 
-func (s *ChineseChessService) isLegalGuardMove(from, to domain.Position, color string) bool {
+// GuardMoveStrategy implements PieceMoveStrategy for the Guard.
+type GuardMoveStrategy struct{}
+
+func (s *GuardMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	dx := abs(to.Col - from.Col)
 	dy := abs(to.Row - from.Row)
 
@@ -154,7 +109,10 @@ func (s *ChineseChessService) isLegalGuardMove(from, to domain.Position, color s
 	return true
 }
 
-func (s *ChineseChessService) isLegalRookMove(from, to domain.Position, color string) bool {
+// RookMoveStrategy implements PieceMoveStrategy for the Rook.
+type RookMoveStrategy struct{}
+
+func (s *RookMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	// Must move horizontally or vertically
 	if from.Row != to.Row && from.Col != to.Col {
 		return false
@@ -166,7 +124,7 @@ func (s *ChineseChessService) isLegalRookMove(from, to domain.Position, color st
 		minCol := min(from.Col, to.Col)
 		maxCol := max(from.Col, to.Col)
 		for c := minCol + 1; c < maxCol; c++ {
-			if _, exists := s.board.Pieces[domain.Position{Row: from.Row, Col: c}]; exists {
+			if _, exists := board.Pieces[domain.Position{Row: from.Row, Col: c}]; exists {
 				piecesBetween++
 			}
 		}
@@ -174,14 +132,14 @@ func (s *ChineseChessService) isLegalRookMove(from, to domain.Position, color st
 		minRow := min(from.Row, to.Row)
 		maxRow := max(from.Row, to.Row)
 		for r := minRow + 1; r < maxRow; r++ {
-			if _, exists := s.board.Pieces[domain.Position{Row: r, Col: from.Col}]; exists {
+			if _, exists := board.Pieces[domain.Position{Row: r, Col: from.Col}]; exists {
 				piecesBetween++
 			}
 		}
 	}
 
 	// If target position is empty, must have zero pieces between
-	if _, exists := s.board.Pieces[to]; !exists {
+	if _, exists := board.Pieces[to]; !exists {
 		return piecesBetween == 0
 	}
 
@@ -189,7 +147,10 @@ func (s *ChineseChessService) isLegalRookMove(from, to domain.Position, color st
 	return piecesBetween == 0
 }
 
-func (s *ChineseChessService) isLegalHorseMove(from, to domain.Position, color string) bool {
+// HorseMoveStrategy implements PieceMoveStrategy for the Horse.
+type HorseMoveStrategy struct{}
+
+func (s *HorseMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	dx := abs(to.Col - from.Col)
 	dy := abs(to.Row - from.Row)
 
@@ -206,14 +167,17 @@ func (s *ChineseChessService) isLegalHorseMove(from, to domain.Position, color s
 		blockPos = domain.Position{Row: from.Row, Col: from.Col + sign(to.Col-from.Col)}
 	}
 
-	if _, exists := s.board.Pieces[blockPos]; exists {
+	if _, exists := board.Pieces[blockPos]; exists {
 		return false
 	}
 
 	return true
 }
 
-func (s *ChineseChessService) isLegalCannonMove(from, to domain.Position, color string) bool {
+// CannonMoveStrategy implements PieceMoveStrategy for the Cannon.
+type CannonMoveStrategy struct{}
+
+func (s *CannonMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	// Must move horizontally or vertically
 	if from.Row != to.Row && from.Col != to.Col {
 		return false
@@ -225,7 +189,7 @@ func (s *ChineseChessService) isLegalCannonMove(from, to domain.Position, color 
 		minCol := min(from.Col, to.Col)
 		maxCol := max(from.Col, to.Col)
 		for c := minCol + 1; c < maxCol; c++ {
-			if _, exists := s.board.Pieces[domain.Position{Row: from.Row, Col: c}]; exists {
+			if _, exists := board.Pieces[domain.Position{Row: from.Row, Col: c}]; exists {
 				piecesBetween++
 			}
 		}
@@ -233,14 +197,14 @@ func (s *ChineseChessService) isLegalCannonMove(from, to domain.Position, color 
 		minRow := min(from.Row, to.Row)
 		maxRow := max(from.Row, to.Row)
 		for r := minRow + 1; r < maxRow; r++ {
-			if _, exists := s.board.Pieces[domain.Position{Row: r, Col: from.Col}]; exists {
+			if _, exists := board.Pieces[domain.Position{Row: r, Col: from.Col}]; exists {
 				piecesBetween++
 			}
 		}
 	}
 
 	// If target position is empty, must have zero pieces between
-	if _, exists := s.board.Pieces[to]; !exists {
+	if _, exists := board.Pieces[to]; !exists {
 		return piecesBetween == 0
 	}
 
@@ -248,7 +212,10 @@ func (s *ChineseChessService) isLegalCannonMove(from, to domain.Position, color 
 	return piecesBetween == 1
 }
 
-func (s *ChineseChessService) isLegalElephantMove(from, to domain.Position, color string) bool {
+// ElephantMoveStrategy implements PieceMoveStrategy for the Elephant.
+type ElephantMoveStrategy struct{}
+
+func (s *ElephantMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	dx := abs(to.Col - from.Col)
 	dy := abs(to.Row - from.Row)
 
@@ -268,14 +235,17 @@ func (s *ChineseChessService) isLegalElephantMove(from, to domain.Position, colo
 	// Check for blocking piece at midpoint
 	midRow := from.Row + sign(to.Row-from.Row)
 	midCol := from.Col + sign(to.Col-from.Col)
-	if _, exists := s.board.Pieces[domain.Position{Row: midRow, Col: midCol}]; exists {
+	if _, exists := board.Pieces[domain.Position{Row: midRow, Col: midCol}]; exists {
 		return false
 	}
 
 	return true
 }
 
-func (s *ChineseChessService) isLegalSoldierMove(from, to domain.Position, color string) bool {
+// SoldierMoveStrategy implements PieceMoveStrategy for the Soldier.
+type SoldierMoveStrategy struct{}
+
+func (s *SoldierMoveStrategy) IsLegalMove(board *domain.Board, from, to domain.Position, color string) bool {
 	dx := abs(to.Col - from.Col)
 	dy := abs(to.Row - from.Row)
 
@@ -307,6 +277,7 @@ func (s *ChineseChessService) isLegalSoldierMove(from, to domain.Position, color
 	return true
 }
 
+// Helper functions (moved from chinesechessService.go)
 func abs(x int) int {
 	if x < 0 {
 		return -x
