@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate:report:orderpromotions": "node generate-report.js"
+    "generate:report:orderpromotions": "node generate-orderpromotions-report.js",
+    "generate:report:chinesechess": "node generate-chinesechess-report.js"
   },
   "repository": {
     "type": "git",
