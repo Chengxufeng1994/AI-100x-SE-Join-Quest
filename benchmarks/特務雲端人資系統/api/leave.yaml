@@ -1,0 +1,533 @@
+components:
+  schemas:
+    LeaveRequest:
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Leave request identifier
+          example: "LR20231201001"
+        agentId:
+          type: string
+          description: Agent identifier
+          example: "AGT001"
+        leaveType:
+          type: string
+          enum: [特休, 事假, 病假, 婚假, 喪假, 產假, 陪產假, 生理假]
+          description: Leave type
+          example: "特休"
+        startDate:
+          type: string
+          format: date
+          description: Leave start date
+          example: "2023-12-01"
+        endDate:
+          type: string
+          format: date
+          description: Leave end date
+          example: "2023-12-01"
+        startTime:
+          type: string
+          format: time
+          description: Start time for partial day leave
+          example: "14:00"
+        endTime:
+          type: string
+          format: time
+          description: End time for partial day leave
+          example: "18:00"
+        duration:
+          type: number
+          format: decimal
+          description: Leave duration in hours/days
+          example: 4.0
+        isFullDay:
+          type: boolean
+          description: Whether it's full day leave
+          example: false
+        reason:
+          type: string
+          description: Leave reason
+          example: "個人事務處理"
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected, Cancelled, Auto-approved]
+          description: Request status
+          example: "Pending"
+        submittedAt:
+          type: string
+          format: date-time
+          description: Submission timestamp
+          example: "2023-11-25T10:00:00Z"
+        reviewedBy:
+          type: string
+          description: Reviewer's name
+          example: "Manager Name"
+        reviewedAt:
+          type: string
+          format: date-time
+          description: Review timestamp
+          example: "2023-11-26T15:30:00Z"
+        comments:
+          type: string
+          description: Review comments
+          example: "同意請假"
+
+    LeaveBalance:
+      type: object
+      properties:
+        balanceId:
+          type: integer
+          description: Balance identifier
+          example: 1001
+        leaveType:
+          type: string
+          description: Leave type
+          example: "特休"
+        year:
+          type: integer
+          description: Year
+          example: 2023
+        totalDays:
+          type: number
+          format: decimal
+          description: Total days allocated
+          example: 10.0
+        usedDays:
+          type: number
+          format: decimal
+          description: Used days
+          example: 3.0
+        availableDays:
+          type: number
+          format: decimal
+          description: Available days
+          example: 7.0
+        expiryDate:
+          type: string
+          format: date
+          description: Expiry date
+          example: "2024-12-31"
+
+    LeaveRule:
+      type: object
+      properties:
+        ruleId:
+          type: integer
+          description: Rule identifier
+          example: 1
+        leaveType:
+          type: string
+          description: Leave type
+          example: "特休"
+        annualQuota:
+          type: number
+          format: decimal
+          description: Annual quota in days
+          example: 10.0
+        canReject:
+          type: boolean
+          description: Whether this leave type can be rejected
+          example: false
+
+    CreateLeaveRequestRequest:
+      type: object
+      required:
+        - leaveType
+        - startDate
+        - endDate
+        - duration
+        - isFullDay
+        - reason
+      properties:
+        leaveType:
+          type: string
+          enum: [特休, 事假, 病假, 婚假, 喪假, 產假, 陪產假, 生理假]
+          description: Leave type
+          example: "特休"
+        startDate:
+          type: string
+          format: date
+          description: Leave start date
+          example: "2023-12-01"
+        endDate:
+          type: string
+          format: date
+          description: Leave end date
+          example: "2023-12-01"
+        startTime:
+          type: string
+          format: time
+          description: Start time for partial day leave
+          example: "14:00"
+        endTime:
+          type: string
+          format: time
+          description: End time for partial day leave
+          example: "18:00"
+        duration:
+          type: number
+          format: decimal
+          description: Leave duration in hours/days
+          example: 4.0
+        isFullDay:
+          type: boolean
+          description: Whether it's full day leave
+          example: false
+        reason:
+          type: string
+          description: Leave reason
+          example: "個人事務處理"
+        medicalCert:
+          type: string
+          format: binary
+          description: Medical certificate for sick leave
+
+paths:
+  /agents/{agentId}/leave-requests:
+    post:
+      tags:
+        - Leave Management
+      summary: Submit Leave Request
+      description: Agent submits a leave request
+      operationId: submitLeaveRequest
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateLeaveRequestRequest'
+      responses:
+        '201':
+          description: Leave request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+        '400':
+          description: Bad request - Invalid dates or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+    get:
+      tags:
+        - Leave Management
+      summary: Get Leave Requests
+      description: Retrieve leave requests for an agent
+      operationId: getLeaveRequests
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by status
+          schema:
+            type: string
+            enum: [Pending, Approved, Rejected, Cancelled, Auto-approved]
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  leaveRequests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRequest'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /leave-requests/{requestId}/cancel:
+    put:
+      tags:
+        - Leave Management
+      summary: Cancel Leave Request
+      description: Agent cancels a pending leave request
+      operationId: cancelLeaveRequest
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Leave request identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave request cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: string
+                    example: "LR20231201001"
+                  status:
+                    type: string
+                    example: "Cancelled"
+                  cancelledAt:
+                    type: string
+                    format: date-time
+                    example: "2023-11-26T10:00:00Z"
+                  message:
+                    type: string
+                    example: "Leave request cancelled successfully"
+        '400':
+          description: Bad request - Cannot cancel approved or past requests
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Leave request not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /leave-requests/{requestId}/review:
+    put:
+      tags:
+        - Leave Management
+      summary: Review Leave Request
+      description: Manager approves or rejects a leave request
+      operationId: reviewLeaveRequest
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Leave request identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - reviewerId
+              properties:
+                action:
+                  type: string
+                  enum: [Approve, Reject]
+                  description: Review action
+                  example: "Approve"
+                comments:
+                  type: string
+                  description: Review comments
+                  example: "同意請假申請"
+                reviewerId:
+                  type: string
+                  description: Reviewer's agent ID
+                  example: "AGT000"
+      responses:
+        '200':
+          description: Leave request reviewed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: string
+                    example: "LR20231201001"
+                  status:
+                    type: string
+                    enum: [Approved, Rejected]
+                    example: "Approved"
+                  reviewedBy:
+                    type: string
+                    example: "Manager Name"
+                  reviewedAt:
+                    type: string
+                    format: date-time
+                    example: "2023-11-26T15:30:00Z"
+                  comments:
+                    type: string
+                    example: "同意請假申請"
+        '400':
+          description: Bad request - Request already reviewed or invalid action
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Leave request not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /agents/{agentId}/leave-balances:
+    get:
+      tags:
+        - Leave Management
+      summary: Get Leave Balances
+      description: Retrieve leave balances for an agent
+      operationId: getLeaveBalances
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: year
+          in: query
+          description: Filter by year
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Leave balances retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  leaveBalances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveBalance'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /leave-rules/positions/{position}:
+    post:
+      tags:
+        - Leave Management
+      summary: Set Leave Rules for Position
+      description: HR sets leave rules for a specific position
+      operationId: setLeaveRulesForPosition
+      parameters:
+        - name: position
+          in: path
+          required: true
+          description: Position name
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rules
+              properties:
+                rules:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - leaveType
+                      - annualQuota
+                      - canReject
+                    properties:
+                      leaveType:
+                        type: string
+                        description: Leave type
+                        example: "特休"
+                      annualQuota:
+                        type: number
+                        format: decimal
+                        description: Annual quota in days
+                        example: 10.0
+                      canReject:
+                        type: boolean
+                        description: Whether this leave type can be rejected
+                        example: false
+      responses:
+        '200':
+          description: Leave rules set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  position:
+                    type: string
+                    example: "特務"
+                  positionType:
+                    type: string
+                    enum: [特務, 專職]
+                    example: "特務"
+                  rules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRule'
+
+    get:
+      tags:
+        - Leave Management
+      summary: Get Leave Rules for Position
+      description: Retrieve leave rules for a specific position
+      operationId: getLeaveRulesForPosition
+      parameters:
+        - name: position
+          in: path
+          required: true
+          description: Position name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leave rules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  position:
+                    type: string
+                    example: "特務"
+                  positionType:
+                    type: string
+                    enum: [特務, 專職]
+                    example: "特務"
+                  rules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRule'
+        '404':
+          description: Position not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

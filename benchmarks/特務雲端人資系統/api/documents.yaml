@@ -1,0 +1,152 @@
+components:
+  schemas:
+    Document:
+      type: object
+      properties:
+        documentId:
+          type: integer
+          description: Document identifier
+          example: 1001
+        documentType:
+          type: string
+          enum: [profilePhoto, idCardFront, idCardBack, medicalCert, marriageCert]
+          description: Document type
+          example: "profilePhoto"
+        fileName:
+          type: string
+          description: Document file name
+          example: "profile_photo.jpg"
+        status:
+          type: string
+          enum: [Uploaded, Verified, Rejected]
+          description: Document status
+          example: "Uploaded"
+        uploadedAt:
+          type: string
+          format: date-time
+          description: Upload timestamp
+          example: "2023-12-01T10:30:00Z"
+
+paths:
+  /agents/{agentId}/documents:
+    post:
+      tags:
+        - Document Management
+      summary: Upload Agent Document
+      description: Upload document for an agent
+      operationId: uploadAgentDocument
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - documentType
+                - file
+              properties:
+                documentType:
+                  type: string
+                  enum: [profilePhoto, idCardFront, idCardBack, medicalCert, marriageCert]
+                  description: Document type
+                  example: "profilePhoto"
+                file:
+                  type: string
+                  format: binary
+                  description: Document file
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '400':
+          description: Bad request - Invalid file type or size
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+    get:
+      tags:
+        - Document Management
+      summary: Get Agent Documents
+      description: Retrieve all documents for an agent
+      operationId: getAgentDocuments
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /agents/{agentId}/documents/{documentId}:
+    delete:
+      tags:
+        - Document Management
+      summary: Delete Agent Document
+      description: Delete a specific document
+      operationId: deleteAgentDocument
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          description: Document identifier
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Document deleted successfully"
+        '404':
+          description: Agent or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

@@ -1,0 +1,94 @@
+components:
+  schemas:
+    AuditLog:
+      type: object
+      properties:
+        logId:
+          type: integer
+          description: Audit log identifier
+          example: 1001
+        tableName:
+          type: string
+          description: Table name that was modified
+          example: "agents"
+        field:
+          type: string
+          description: Field name that was modified
+          example: "address"
+        oldValue:
+          type: string
+          description: Old value before modification
+          example: "台北市信義區信義路五段1號"
+        newValue:
+          type: string
+          description: New value after modification
+          example: "台北市信義區信義路五段7號"
+        operatorId:
+          type: string
+          description: Operator's agent ID
+          example: "AGT000"
+        operatorName:
+          type: string
+          description: Operator's name
+          example: "Admin User"
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Modification timestamp
+          example: "2023-12-01T14:30:00Z"
+
+paths:
+  /agents/{agentId}/audit-logs:
+    get:
+      tags:
+        - Audit Logs
+      summary: Get Audit Logs
+      description: Retrieve audit logs for an agent
+      operationId: getAuditLogs
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: tableName
+          in: query
+          description: Filter by table name
+          schema:
+            type: string
+        - name: field
+          in: query
+          description: Filter by field name
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Audit logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auditLogs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLog'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

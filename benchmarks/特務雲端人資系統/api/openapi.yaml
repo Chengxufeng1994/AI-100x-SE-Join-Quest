@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: 特務雲端人資系統 API
+  description: HR System API for managing agents, attendance, and leave requests
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@waterballsa.tw
+
+servers:
+  - url: https://api.hr.waterballsa.tw/v1
+    description: Production server
+  - url: https://api-staging.hr.waterballsa.tw/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+          required:
+            - code
+            - message
+            - timestamp
+
+    PaginationResponse:
+      type: object
+      properties:
+        totalCount:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+paths:
+  # Authentication APIs
+  /auth/login:
+    $ref: './auth.yaml#/paths/~1auth~1login'
+
+  # Agent Management APIs
+  /agents:
+    $ref: './agents.yaml#/paths/~1agents'
+  /agents/batch:
+    $ref: './agents.yaml#/paths/~1agents~1batch'
+  /agents/export:
+    $ref: './agents.yaml#/paths/~1agents~1export'
+  /agents/{agentId}:
+    $ref: './agents.yaml#/paths/~1agents~1{agentId}'
+
+  # Document Management APIs
+  /agents/{agentId}/documents:
+    $ref: './documents.yaml#/paths/~1agents~1{agentId}~1documents'
+  /agents/{agentId}/documents/{documentId}:
+    $ref: './documents.yaml#/paths/~1agents~1{agentId}~1documents~1{documentId}'
+
+  # Emergency Contact APIs
+  /agents/{agentId}/emergency-contacts:
+    $ref: './emergency-contacts.yaml#/paths/~1agents~1{agentId}~1emergency-contacts'
+  /agents/{agentId}/emergency-contacts/{contactId}:
+    $ref: './emergency-contacts.yaml#/paths/~1agents~1{agentId}~1emergency-contacts~1{contactId}'
+
+  # Attendance APIs (Punch Clock, Schedule, Attendance Management)
+  /agents/{agentId}/punch:
+    $ref: './attendance.yaml#/paths/~1agents~1{agentId}~1punch'
+  /agents/{agentId}/punch/status:
+    $ref: './attendance.yaml#/paths/~1agents~1{agentId}~1punch~1status'
+  /agents/{agentId}/schedules:
+    $ref: './attendance.yaml#/paths/~1agents~1{agentId}~1schedules'
+  /agents/{agentId}/schedules/{date}:
+    $ref: './attendance.yaml#/paths/~1agents~1{agentId}~1schedules~1{date}'
+  /agents/{agentId}/attendance:
+    $ref: './attendance.yaml#/paths/~1agents~1{agentId}~1attendance'
+  /attendance/{attendanceId}:
+    $ref: './attendance.yaml#/paths/~1attendance~1{attendanceId}'
+  /attendance/export:
+    $ref: './attendance.yaml#/paths/~1attendance~1export'
+  /attendance/exceptions:
+    $ref: './attendance.yaml#/paths/~1attendance~1exceptions'
+
+  # Leave Management APIs
+  /agents/{agentId}/leave-requests:
+    $ref: './leave.yaml#/paths/~1agents~1{agentId}~1leave-requests'
+  /leave-requests/{requestId}/cancel:
+    $ref: './leave.yaml#/paths/~1leave-requests~1{requestId}~1cancel'
+  /leave-requests/{requestId}/review:
+    $ref: './leave.yaml#/paths/~1leave-requests~1{requestId}~1review'
+  /agents/{agentId}/leave-balances:
+    $ref: './leave.yaml#/paths/~1agents~1{agentId}~1leave-balances'
+  /leave-rules/positions/{position}:
+    $ref: './leave.yaml#/paths/~1leave-rules~1positions~1{position}'
+
+  # Notification APIs
+  /agents/{agentId}/notifications:
+    $ref: './notifications.yaml#/paths/~1agents~1{agentId}~1notifications'
+  /notifications/{notificationId}/read:
+    $ref: './notifications.yaml#/paths/~1notifications~1{notificationId}~1read'
+
+  # Audit Log APIs
+  /agents/{agentId}/audit-logs:
+    $ref: './audit.yaml#/paths/~1agents~1{agentId}~1audit-logs'
+
+  # System APIs
+  /system/status:
+    $ref: './system.yaml#/paths/~1system~1status' 

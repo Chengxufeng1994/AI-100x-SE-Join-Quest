@@ -1,0 +1,86 @@
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Agent Login
+      description: An agent logs into the HR system using their Google account
+      operationId: loginAgent
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - googleEmail
+                - displayName
+              properties:
+                googleEmail:
+                  type: string
+                  format: email
+                  description: Google account email (must be @waterballsa.tw domain)
+                  example: john.doe@waterballsa.tw
+                displayName:
+                  type: string
+                  description: Display name from Google account
+                  example: John Doe
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agentId:
+                    type: string
+                    description: Agent identifier
+                    example: "AGT001"
+                  name:
+                    type: string
+                    description: Agent name
+                    example: "John Doe"
+                  position:
+                    type: string
+                    description: Agent position
+                    example: "特務"
+                  department:
+                    type: string
+                    description: Agent department
+                    example: "技術部"
+                  token:
+                    type: string
+                    description: JWT token
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Token expiration time
+                    example: "2023-12-31T23:59:59Z"
+                required:
+                  - agentId
+                  - name
+                  - position
+                  - department
+                  - token
+                  - expiresAt
+        '400':
+          description: Bad request - Invalid email domain or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '401':
+          description: Unauthorized - Invalid Google account
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

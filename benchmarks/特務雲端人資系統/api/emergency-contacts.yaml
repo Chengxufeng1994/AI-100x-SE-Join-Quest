@@ -1,0 +1,168 @@
+components:
+  schemas:
+    EmergencyContact:
+      type: object
+      properties:
+        contactId:
+          type: integer
+          description: Contact identifier
+          example: 1
+        name:
+          type: string
+          description: Contact name
+          example: "Jane Doe"
+        relationship:
+          type: string
+          description: Relationship to agent
+          example: "配偶"
+        phone:
+          type: string
+          description: Contact phone number
+          example: "0987654321"
+        address:
+          type: string
+          description: Contact address
+          example: "台北市大安區忠孝東路四段1號"
+
+    CreateEmergencyContactRequest:
+      type: object
+      required:
+        - name
+        - relationship
+        - phone
+      properties:
+        name:
+          type: string
+          description: Contact name
+          example: "Jane Doe"
+        relationship:
+          type: string
+          description: Relationship to agent
+          example: "配偶"
+        phone:
+          type: string
+          description: Contact phone number
+          example: "0987654321"
+        address:
+          type: string
+          description: Contact address
+          example: "台北市大安區忠孝東路四段1號"
+
+paths:
+  /agents/{agentId}/emergency-contacts:
+    post:
+      tags:
+        - Emergency Contact
+      summary: Create Emergency Contact
+      description: Create emergency contact for an agent
+      operationId: createEmergencyContact
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmergencyContactRequest'
+      responses:
+        '201':
+          description: Emergency contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyContact'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+    get:
+      tags:
+        - Emergency Contact
+      summary: Get Emergency Contacts
+      description: Retrieve all emergency contacts for an agent
+      operationId: getEmergencyContacts
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Emergency contacts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contacts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmergencyContact'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /agents/{agentId}/emergency-contacts/{contactId}:
+    put:
+      tags:
+        - Emergency Contact
+      summary: Update Emergency Contact
+      description: Update emergency contact information
+      operationId: updateEmergencyContact
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: contactId
+          in: path
+          required: true
+          description: Contact identifier
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmergencyContactRequest'
+      responses:
+        '200':
+          description: Emergency contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmergencyContact'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent or contact not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

@@ -1,0 +1,46 @@
+components:
+  schemas:
+    SystemStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: System status
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Status check timestamp
+          example: "2023-12-01T15:00:00Z"
+        version:
+          type: string
+          description: System version
+          example: "1.0.0"
+        uptime:
+          type: string
+          description: System uptime
+          example: "72h 45m 30s"
+
+paths:
+  /system/status:
+    get:
+      tags:
+        - System
+      summary: Get System Status
+      description: Check system health and status
+      operationId: getSystemStatus
+      security: []
+      responses:
+        '200':
+          description: System status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error' 

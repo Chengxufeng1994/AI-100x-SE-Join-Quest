@@ -1,0 +1,688 @@
+components:
+  schemas:
+    PunchRecord:
+      type: object
+      properties:
+        recordId:
+          type: integer
+          description: Punch record identifier
+          example: 1001
+        agentId:
+          type: string
+          description: Agent identifier
+          example: "AGT001"
+        date:
+          type: string
+          format: date
+          description: Punch date
+          example: "2023-12-01"
+        punchType:
+          type: string
+          enum: [IN, OUT]
+          description: Punch type
+          example: "IN"
+        timestamp:
+          type: string
+          format: date-time
+          description: Punch timestamp
+          example: "2023-12-01T09:00:00Z"
+        location:
+          type: string
+          description: Punch location
+          example: "台北總部"
+        status:
+          type: string
+          enum: [Valid, Invalid]
+          description: Punch status
+          example: "Valid"
+        workStatus:
+          type: string
+          enum: [Punched In, Punched Out]
+          description: Current work status
+          example: "Punched In"
+        message:
+          type: string
+          description: Status message
+          example: "打卡成功"
+
+    WorkSchedule:
+      type: object
+      properties:
+        scheduleId:
+          type: integer
+          description: Schedule identifier
+          example: 2001
+        agentId:
+          type: string
+          description: Agent identifier
+          example: "AGT001"
+        date:
+          type: string
+          format: date
+          description: Work date
+          example: "2023-12-01"
+        workStart:
+          type: string
+          format: time
+          description: Work start time
+          example: "09:00"
+        workEnd:
+          type: string
+          format: time
+          description: Work end time
+          example: "18:00"
+        breakStart:
+          type: string
+          format: time
+          description: Break start time
+          example: "12:00"
+        breakEnd:
+          type: string
+          format: time
+          description: Break end time
+          example: "13:00"
+        totalHours:
+          type: number
+          format: decimal
+          description: Total work hours
+          example: 8.0
+        status:
+          type: string
+          enum: [Active, Modified, Cancelled]
+          description: Schedule status
+          example: "Active"
+        modifiedAt:
+          type: string
+          format: date-time
+          description: Modification timestamp
+          example: "2023-12-01T08:00:00Z"
+
+    AttendanceRecord:
+      type: object
+      properties:
+        attendanceId:
+          type: integer
+          description: Attendance record identifier
+          example: 3001
+        agentId:
+          type: string
+          description: Agent identifier
+          example: "AGT001"
+        date:
+          type: string
+          format: date
+          description: Attendance date
+          example: "2023-12-01"
+        punchIn:
+          type: string
+          format: date-time
+          description: Punch in time
+          example: "2023-12-01T09:00:00Z"
+        punchOut:
+          type: string
+          format: date-time
+          description: Punch out time
+          example: "2023-12-01T18:00:00Z"
+        workHours:
+          type: number
+          format: decimal
+          description: Total work hours
+          example: 8.0
+        status:
+          type: string
+          enum: [Normal, Adjusted, OnLeave, Absent]
+          description: Attendance status
+          example: "Normal"
+
+    AttendanceException:
+      type: object
+      properties:
+        exceptionId:
+          type: integer
+          description: Exception identifier
+          example: 4001
+        agentId:
+          type: string
+          description: Agent identifier
+          example: "AGT001"
+        agentName:
+          type: string
+          description: Agent name
+          example: "John Doe"
+        date:
+          type: string
+          format: date
+          description: Exception date
+          example: "2023-12-01"
+        alertType:
+          type: string
+          description: Alert type
+          example: "遲到"
+        description:
+          type: string
+          description: Exception description
+          example: "員工於09:30打卡，遲到30分鐘"
+        isResolved:
+          type: boolean
+          description: Whether the exception is resolved
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Exception creation time
+          example: "2023-12-01T09:30:00Z"
+
+paths:
+  # Punch Clock APIs
+  /agents/{agentId}/punch:
+    post:
+      tags:
+        - Punch Clock
+      summary: Punch Clock
+      description: Agent punches in or out for work
+      operationId: punchClock
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - punchType
+                - location
+              properties:
+                punchType:
+                  type: string
+                  enum: [IN, OUT]
+                  description: Punch type
+                  example: "IN"
+                location:
+                  type: string
+                  description: Punch location
+                  example: "台北總部"
+                ipAddress:
+                  type: string
+                  description: IP address
+                  example: "192.168.1.100"
+                device:
+                  type: string
+                  description: Device information
+                  example: "iPhone 15"
+      responses:
+        '200':
+          description: Punch recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PunchRecord'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /agents/{agentId}/punch/status:
+    get:
+      tags:
+        - Punch Clock
+      summary: Get Punch Status
+      description: Get current punch status for an agent
+      operationId: getPunchStatus
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Punch status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agentId:
+                    type: string
+                    example: "AGT001"
+                  date:
+                    type: string
+                    format: date
+                    example: "2023-12-01"
+                  workStatus:
+                    type: string
+                    enum: [Not Punched, Punched In, Punched Out, On Leave]
+                    example: "Punched In"
+                  lastPunch:
+                    type: object
+                    properties:
+                      punchType:
+                        type: string
+                        enum: [IN, OUT]
+                        example: "IN"
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-12-01T09:00:00Z"
+                      location:
+                        type: string
+                        example: "台北總部"
+                  message:
+                    type: string
+                    example: "已打卡上班"
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  # Work Schedule APIs
+  /agents/{agentId}/schedules:
+    post:
+      tags:
+        - Work Schedule
+      summary: Set Work Schedule
+      description: Agent sets flexible work schedule for a specific date
+      operationId: setWorkSchedule
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - date
+                - workStart
+                - workEnd
+                - totalHours
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: Work date
+                  example: "2023-12-01"
+                workStart:
+                  type: string
+                  format: time
+                  description: Work start time
+                  example: "09:00"
+                workEnd:
+                  type: string
+                  format: time
+                  description: Work end time
+                  example: "18:00"
+                breakStart:
+                  type: string
+                  format: time
+                  description: Break start time
+                  example: "12:00"
+                breakEnd:
+                  type: string
+                  format: time
+                  description: Break end time
+                  example: "13:00"
+                totalHours:
+                  type: number
+                  format: decimal
+                  description: Total work hours
+                  example: 8.0
+      responses:
+        '201':
+          description: Work schedule set successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkSchedule'
+        '400':
+          description: Bad request - Invalid schedule or timing conflict
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+    get:
+      tags:
+        - Work Schedule
+      summary: Get Work Schedules
+      description: Retrieve work schedules for an agent
+      operationId: getWorkSchedules
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Work schedules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkSchedule'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /agents/{agentId}/schedules/{date}:
+    put:
+      tags:
+        - Work Schedule
+      summary: Update Work Schedule
+      description: Agent modifies work schedule before 10AM next day
+      operationId: updateWorkSchedule
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: date
+          in: path
+          required: true
+          description: Work date
+          schema:
+            type: string
+            format: date
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workStart:
+                  type: string
+                  format: time
+                  description: Work start time
+                  example: "09:00"
+                workEnd:
+                  type: string
+                  format: time
+                  description: Work end time
+                  example: "18:00"
+                breakStart:
+                  type: string
+                  format: time
+                  description: Break start time
+                  example: "12:00"
+                breakEnd:
+                  type: string
+                  format: time
+                  description: Break end time
+                  example: "13:00"
+                totalHours:
+                  type: number
+                  format: decimal
+                  description: Total work hours
+                  example: 8.0
+      responses:
+        '200':
+          description: Work schedule updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkSchedule'
+        '400':
+          description: Bad request - Schedule cannot be modified or invalid timing
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Agent or schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  # Attendance Management APIs
+  /agents/{agentId}/attendance:
+    get:
+      tags:
+        - Attendance Management
+      summary: Get Attendance Records
+      description: Retrieve attendance records for an agent
+      operationId: getAttendanceRecords
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          description: Agent identifier
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Attendance records retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attendanceRecords:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttendanceRecord'
+        '404':
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /attendance/{attendanceId}:
+    put:
+      tags:
+        - Attendance Management
+      summary: Adjust Attendance Record
+      description: HR staff adjusts attendance record with audit trail
+      operationId: adjustAttendanceRecord
+      parameters:
+        - name: attendanceId
+          in: path
+          required: true
+          description: Attendance record identifier
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+                - operatorId
+              properties:
+                adjustments:
+                  type: object
+                  description: Fields to adjust
+                  additionalProperties: true
+                  example:
+                    punchIn: "2023-12-01T09:00:00Z"
+                    punchOut: "2023-12-01T18:00:00Z"
+                reason:
+                  type: string
+                  description: Adjustment reason
+                  example: "系統故障導致打卡異常"
+                operatorId:
+                  type: string
+                  description: Operator's ID
+                  example: "AGT000"
+      responses:
+        '200':
+          description: Attendance record adjusted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/AttendanceRecord'
+                  - type: object
+                    properties:
+                      auditLogId:
+                        type: integer
+                        description: Audit log identifier
+                        example: 5001
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+        '404':
+          description: Attendance record not found
+          content:
+            application/json:
+              schema:
+                $ref: '../openapi.yaml#/components/schemas/Error'
+
+  /attendance/export:
+    get:
+      tags:
+        - Attendance Management
+      summary: Export Attendance Data
+      description: Export attendance data with filters
+      operationId: exportAttendanceData
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+        - name: department
+          in: query
+          description: Department filter
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Status filter
+          schema:
+            type: string
+            enum: [Normal, Adjusted, OnLeave, Absent]
+        - name: format
+          in: query
+          description: Export format
+          schema:
+            type: string
+            enum: [xlsx, csv]
+            default: xlsx
+      responses:
+        '200':
+          description: File exported successfully
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /attendance/exceptions:
+    get:
+      tags:
+        - Attendance Management
+      summary: Get Attendance Exceptions
+      description: HR views attendance exception alerts
+      operationId: getAttendanceExceptions
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+        - name: isResolved
+          in: query
+          description: Filter by resolution status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Attendance exceptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exceptions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttendanceException' 
